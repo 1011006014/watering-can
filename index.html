@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Watering Can</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a windowsill garden — plant pals on shelves up top, everything else (add, catalog) behind tabs; one working column. */
+:root{
+  --bg:#EAF0E6; --surface:#F9FBF6; --shelf:#D9C7A6; --ink:#1C2620; --muted:#5A685E; --line:#D0D9CC;
+  --leaf:#3D6A38; --leaf-soft:#DCE8D6; --water:#1D6A92; --water-soft:#D5E7F0;
+  --warn:#A9441D; --warn-soft:#F5DCD0; --sun:#B7861A; --sun-soft:#F5EACB;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",sans-serif;
+  --f-body:"Figtree","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101612; --surface:#18201B; --shelf:#5A4A33; --ink:#E2E9E1; --muted:#97A79A; --line:#2B372F;
+  --leaf:#8EC07F; --leaf-soft:#1F3020; --water:#6DB7DC; --water-soft:#14303D;
+  --warn:#F08B6B; --warn-soft:#3A2018; --sun:#E5BE5C; --sun-soft:#3A3018; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101612; --surface:#18201B; --shelf:#5A4A33; --ink:#E2E9E1; --muted:#97A79A; --line:#2B372F;
+  --leaf:#8EC07F; --leaf-soft:#1F3020; --water:#6DB7DC; --water-soft:#14303D;
+  --warn:#F08B6B; --warn-soft:#3A2018; --sun:#E5BE5C; --sun-soft:#3A3018; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body)}
+.wrap{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:18px 72px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.eyebrow{font:500 11px/1.2 var(--f-mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+p{margin:0}
+
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;padding-bottom:14px}
+.brand{display:flex;gap:10px;align-items:center}
+.brand svg{width:36px;height:36px;color:var(--water);flex:none}
+.brand h1{font-size:26px;font-weight:800}
+.headline{font-family:var(--f-display);font-size:clamp(21px,3.6vw,30px);font-weight:500;line-height:1.15;max-width:26ch;margin-top:10px}
+.headline b{font-weight:800;color:var(--leaf)} .headline b.warn{color:var(--warn)} .headline b.water{color:var(--water)}
+.tally{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font:500 12px/1.4 var(--f-mono);background:var(--surface);border:1px solid var(--line);white-space:nowrap}
+.pill.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.pill.water{background:var(--water-soft);border-color:transparent;color:var(--water)}
+.pill.leaf{background:var(--leaf-soft);border-color:transparent;color:var(--leaf)}
+.pill.sun{background:var(--sun-soft);border-color:transparent;color:var(--sun)}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px;overflow-x:auto}
+nav.tabs button{background:none;border:0;padding:12px 14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--water)}
+nav.tabs .count{font:500 11px var(--f-mono);margin-left:6px;color:var(--muted)}
+
+section.view{display:grid;gap:28px}
+section.view > *{min-width:0}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.section-head h2{font-size:20px;font-weight:700}
+
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--water);border-color:var(--water);color:var(--surface)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.leafy{background:var(--leaf);border-color:var(--leaf);color:var(--surface)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--warn)}
+.btn.small{padding:4px 10px;font-size:13px}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn svg{width:16px;height:16px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- Garden shelf ---------- */
+.garden{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:26px 14px;padding:4px 0 0}
+.pal-card{position:relative;display:grid;justify-items:center;gap:4px;text-align:center;background:none;border:0;padding:0 0 10px;border-radius:var(--r)}
+.pal-card::after{content:"";position:absolute;left:-7px;right:-7px;bottom:0;height:8px;border-radius:4px;background:var(--shelf);box-shadow:0 3px 0 color-mix(in srgb,var(--shelf) 60%,#000 40%)}
+.pal-card .art{width:150px;max-width:100%;aspect-ratio:120/140;display:block}
+.pal-card .art svg{width:100%;height:100%;overflow:visible}
+.pal-card .nm{font:700 16px/1.2 var(--f-display);max-width:100%;overflow-wrap:anywhere}
+.pal-card .st{font:500 12px/1.3 var(--f-mono)}
+.st.happy{color:var(--leaf)} .st.thirsty{color:var(--water)} .st.wilted{color:var(--warn)}
+.pal-card .quick{margin:4px 0 6px}
+.pal-card:hover .art{transform:translateY(-2px)}
+.pal-card .art{transition:transform .2s}
+.badge-row{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;min-height:18px}
+.mini{font:500 10.5px var(--f-mono);padding:1px 6px;border-radius:4px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.mini.ok{color:var(--leaf);border-color:transparent;background:var(--leaf-soft)}
+.mini.bad{color:var(--warn);border-color:transparent;background:var(--warn-soft)}
+
+/* Plant pal animation */
+.pal .lf{transform-box:fill-box;transform-origin:50% 100%;transition:transform 1.2s cubic-bezier(.3,1.4,.5,1)}
+.pal .foliage{transition:filter 1s}
+.pal .face .mouth,.pal .face .eye{transition:all .4s}
+.s-happy .lf{animation:sway 4.2s ease-in-out infinite;animation-delay:var(--dl,0s)}
+.s-thirsty .lf{animation:droop 3.2s ease-in-out infinite;animation-delay:var(--dl,0s)}
+.s-wilted .lf{animation:wilt 5s ease-in-out infinite;animation-delay:var(--dl,0s)}
+.s-thirsty .foliage{filter:saturate(.75)}
+.s-wilted .foliage{filter:saturate(.3) sepia(.45) brightness(.92)}
+@keyframes sway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+@keyframes droop{0%,100%{transform:rotate(calc(var(--s)*16deg))}50%{transform:rotate(calc(var(--s)*24deg))}}
+@keyframes wilt{0%,100%{transform:rotate(calc(var(--s)*44deg)) scaleY(.9)}50%{transform:rotate(calc(var(--s)*50deg)) scaleY(.88)}}
+.pal .eye.blink{animation:blink 5s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.pal .eye{transform-box:fill-box;transform-origin:center}
+.pal .sweat{animation:sweat 2.4s ease-in infinite}
+@keyframes sweat{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(10px);opacity:0}}
+.pal .can,.pal .drops,.pal .spark{display:none}
+.reviving .can{display:block;transform-box:fill-box;transform-origin:80% 80%;animation:pour 1.8s ease-in-out both}
+.reviving .drops{display:block}
+.reviving .drops circle{animation:fall .6s linear infinite;animation-delay:var(--dl)}
+.reviving .lf{animation:revive 1.6s .5s cubic-bezier(.3,1.7,.5,1) both}
+.reviving .foliage{animation:colorback 1.4s .5s both}
+.reviving .spark{display:block;transform-box:fill-box;transform-origin:center;animation:spark 1s 1.4s ease-out both}
+@keyframes pour{0%{transform:translate(20px,-14px) rotate(0);opacity:0}15%{opacity:1;transform:translate(0,0) rotate(0)}30%,75%{transform:rotate(-28deg)}100%{transform:translate(20px,-14px) rotate(0);opacity:0}}
+@keyframes fall{0%{transform:translateY(0);opacity:1}100%{transform:translateY(34px);opacity:0}}
+@keyframes revive{0%{transform:rotate(calc(var(--s)*46deg)) scaleY(.9)}55%{transform:rotate(calc(var(--s)*-8deg)) scaleY(1.04)}100%{transform:rotate(0)}}
+@keyframes colorback{0%{filter:saturate(.3) sepia(.45) brightness(.92)}100%{filter:none}}
+@keyframes spark{0%{transform:scale(0);opacity:0}40%{opacity:1}100%{transform:scale(1.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){.pal *{animation:none!important}.s-thirsty .lf{transform:rotate(calc(var(--s)*20deg))}.s-wilted .lf{transform:rotate(calc(var(--s)*46deg))}}
+
+/* Week strip */
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;min-height:84px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.day.today{border-color:var(--water);box-shadow:inset 0 0 0 1px var(--water)}
+.day .d{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.day .d b{display:block;font:700 18px var(--f-display);color:var(--ink);letter-spacing:0}
+.chip{font-size:12px;line-height:1.25;padding:3px 6px;border-radius:6px;background:var(--water-soft);color:var(--water);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:640px){.week{grid-template-columns:repeat(7,minmax(84px,1fr))}.week-scroll{overflow-x:auto;padding-bottom:4px}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:12px}
+.panel h3{font-size:17px}
+.settings{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13px;color:var(--muted)}
+.settings label{display:inline-flex;gap:8px;align-items:center;color:var(--ink);font-weight:500}
+.settings select{padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--bg)}
+
+/* Add plant */
+.drop{display:grid;place-items:center;gap:8px;text-align:center;border:2px dashed var(--line);border-radius:var(--r);padding:28px 16px;background:var(--surface);cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--water)}
+.drop svg{width:44px;height:44px;color:var(--water)}
+.drop strong{font:700 19px var(--f-display)}
+.idres{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:start}
+.idres .photo{width:150px;max-width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:var(--line)}
+@media (max-width:520px){.idres{grid-template-columns:1fr}}
+.thinking{display:flex;gap:10px;align-items:center;color:var(--muted)}
+.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--water);margin-right:4px;animation:bounce 1s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-5px);opacity:1}}
+
+/* Catalog */
+.search-input{position:relative}
+.search-input svg{position:absolute;left:12px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:var(--muted)}
+.search-input input{width:100%;padding:12px 14px 12px 40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:16px}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fchip{border:1px solid var(--line);background:transparent;padding:5px 10px;border-radius:999px;font-size:13px;font-weight:500}
+.fchip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.result{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px;align-items:center}
+.result:hover{border-color:var(--water)}
+.result .ic{width:56px;height:65px}
+.result .ic svg{width:100%;height:100%}
+.result .name{font-weight:600}
+.latin{font-style:italic;color:var(--muted);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tag{font:500 11px var(--f-mono);padding:2px 6px;border-radius:4px;background:var(--bg);color:var(--muted)}
+.tag.safe{color:var(--leaf);background:var(--leaf-soft)}
+.tag.toxic{color:var(--warn);background:var(--warn-soft)}
+.tag.owned{color:var(--water);background:var(--water-soft)}
+
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:22px;display:grid;gap:10px;justify-items:start;color:var(--muted)}
+.empty h3{color:var(--ink);font-size:18px}
+
+/* Sheet */
+dialog{border:0;padding:0;border-radius:18px;background:var(--surface);color:var(--ink);width:min(580px,calc(100vw - 24px));max-height:calc(100dvh - 32px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(10,20,14,.45)}
+.dlg{padding:20px;display:grid;gap:16px}
+.dlg-head{display:flex;gap:14px;align-items:flex-start}
+.dlg-head > div{flex:1;min-width:0}
+.dlg-head h2{font-size:24px}
+.dlg-hero{display:grid;grid-template-columns:140px minmax(0,1fr);gap:16px;align-items:center}
+.dlg-hero .art{width:140px;aspect-ratio:120/140}
+.dlg-hero .art svg{width:100%;height:100%;overflow:visible}
+@media (max-width:440px){.dlg-hero{grid-template-columns:110px minmax(0,1fr)}.dlg-hero .art{width:110px}}
+.close{background:none;border:0;padding:6px;color:var(--muted);border-radius:6px}
+.close svg{width:20px;height:20px}
+.care{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.care > div{background:var(--bg);border-radius:10px;padding:10px}
+.care .v{font-weight:600;font-size:14px;margin-top:2px}
+.care .n{font:400 12px var(--f-mono);color:var(--muted)}
+.tips{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
+form.add{display:grid;gap:12px}
+.field{display:grid;gap:4px;min-width:0}
+.field label,.field .lbl{font-size:13px;font-weight:600}
+.field input,.field select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);width:100%}
+.field .hint{font-size:12px;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:480px){.care,.two{grid-template-columns:1fr}}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches label{position:relative}
+.swatches input{position:absolute;opacity:0;inset:0}
+.swatches span{display:block;width:30px;height:30px;border-radius:50%;border:2px solid var(--line)}
+.swatches input:checked + span{outline:2px solid var(--water);outline-offset:2px}
+.swatches input:focus-visible + span{outline:2px solid var(--water);outline-offset:2px}
+.history{display:flex;flex-wrap:wrap;gap:4px}
+.proof{width:96px;height:96px;border-radius:10px;object-fit:cover;background:var(--line)}
+.health{display:grid;gap:8px}
+.issue{background:var(--bg);border-radius:10px;padding:10px;display:grid;gap:2px;font-size:14px}
+.issue b{font-weight:700}
+.supplies{display:flex;flex-wrap:wrap;gap:6px}
+.supplies span{font-size:13px;padding:3px 9px;border-radius:999px;background:var(--sun-soft);color:var(--ink)}
+.toast{width:max-content;text-align:center;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;z-index:50;max-width:calc(100vw - 32px)}
+.note{font-size:12.5px;color:var(--muted)}
+.hidden-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 17h20v12a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z"/><path d="M28 20l8-6"/><path d="M14 17c0-5 3-9 8-9"/><path d="M33 19v2M36 21v2M34 24v2" stroke-width="1.8"/></svg>
+        <h1>Watering Can</h1>
+      </div>
+      <p class="headline" id="headline">Your plants, as little pals who tell you when they're thirsty.</p>
+    </div>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-garden" data-tab="garden" aria-selected="true">My garden<span class="count" id="gardenCount"></span></button>
+    <button role="tab" id="tab-add" data-tab="add" aria-selected="false">Add a plant</button>
+    <button role="tab" id="tab-find" data-tab="find" aria-selected="false">Plant catalog</button>
+  </nav>
+
+  <section class="view" id="view-garden"></section>
+
+  <section class="view" id="view-add">
+    <div>
+      <div class="section-head"><h2>Add a plant from a photo</h2><span class="eyebrow">Claude identifies it</span></div>
+      <label class="drop" id="drop" for="idFile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="4"/></svg>
+        <strong>Take or upload a photo</strong>
+        <span class="muted">Get the whole plant and pot in frame. You'll get its species, a care plan for its pot size and a quick health check.</span>
+      </label>
+      <input class="hidden-file" type="file" id="idFile" accept="image/*" capture="environment">
+      <p class="note" id="idNote" style="margin-top:8px">Know what it is already? <button class="btn ghost small" data-goto="find">Pick from the catalog</button></p>
+    </div>
+    <div id="idResult"></div>
+  </section>
+
+  <section class="view" id="view-find" hidden>
+    <div style="display:grid;gap:12px">
+      <div class="search-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input id="q" type="search" placeholder="Search by name or Latin name, e.g. philodendron, Dracaena, fern" autocomplete="off" aria-label="Search plants">
+      </div>
+      <div class="filters" id="filters"></div>
+      <p class="note" id="resultCount"></p>
+    </div>
+    <div class="results" id="results"></div>
+    <p class="note">Light guide: low 50–150 fc · medium 150–300 fc · bright indirect 300–800 fc · direct sun 800+ fc (foot-candles at the leaf). Catalog intervals are for a 6″ (15 cm) pot in spring and summer. When you add a plant, the interval is adjusted for its pot. Plants that aren't listed here can be added from a photo.</p>
+  </section>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle"></dialog>
+<input class="hidden-file" type="file" id="proofFile" accept="image/*" capture="environment" aria-label="Photo of the watered plant">
+<input class="hidden-file" type="file" id="healthFile" accept="image/*" capture="environment" aria-label="Photo for a health check">
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+// ---------- Catalog (kind drives the plant pal drawing; vari = variegation colour) ----------
+const C = [
+ {id:"monstera",name:"Monstera",latin:"Monstera deliciosa",kind:"leaf",light:["medium","bright"],water:7,care:"easy",pet:false,hum:"50–70%",temp:"18–29 °C",how:"Water when the top 5 cm of soil is dry. Soak, then let it drain fully.",tips:["Give it a moss pole; aerial roots will climb it.","Leaves without splits usually mean too little light.","Wipe dust off leaves monthly."]},
+ {id:"snake",name:"Snake plant",latin:"Dracaena trifasciata",aka:"sansevieria dracaena",kind:"succulent",light:["low","medium","bright"],water:14,care:"easy",pet:false,hum:"30–50%",temp:"15–29 °C",how:"Let the soil dry out completely. In winter, monthly is often enough.",tips:["Overwatering is the main way these die.","Use a cactus or gritty mix in a terracotta pot.","Tolerates dim corners but grows faster in bright light."]},
+ {id:"zz",name:"ZZ plant",latin:"Zamioculcas zamiifolia",kind:"leaf",light:["low","medium"],water:14,care:"easy",pet:false,hum:"30–50%",temp:"15–26 °C",how:"Water only when the soil is fully dry. Rhizomes store water.",tips:["Yellow stems mean too much water.","Avoid direct afternoon sun, which scorches leaves."]},
+ {id:"pothos",name:"Golden pothos",latin:"Epipremnum aureum",kind:"vine",light:["low","medium","bright"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"16–29 °C",how:"Water when the top half of the soil is dry. Drooping leaves are a clear thirst signal.",tips:["Pinch back long vines for a fuller plant.","Cuttings root easily in a glass of water.","More light keeps the variegation bright."]},
+ {id:"philo",name:"Heartleaf philodendron",latin:"Philodendron hederaceum",kind:"vine",light:["low","medium"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"18–27 °C",how:"Water when the top 2–3 cm (1 in) is dry. Leaves go limp when it is thirsty and perk up within a day.",tips:["Leggy growth with small leaves means it wants more light.","Yellowing older leaves plus damp soil means it is getting too much water.","Trailing or climbing both work."]},
+ {id:"philo-brasil",name:"Philodendron Brasil",latin:"Philodendron hederaceum 'Brasil'",kind:"vine",light:["medium","bright"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"18–27 °C",how:"Water when the top 2–3 cm (1 in) is dry.",tips:["Brighter light keeps the lime stripe; deep shade turns leaves plain green.","Prune long vines to push new growth from the base."]},
+ {id:"philo-micans",name:"Philodendron Micans",latin:"Philodendron hederaceum var. hederaceum",kind:"vine",light:["medium","bright"],water:7,care:"easy",pet:false,hum:"50%+",temp:"18–27 °C",how:"Water when the top 2–3 cm is dry. Velvet leaves curl slightly when thirsty.",tips:["Higher humidity keeps the velvet leaves large.","Wipe leaves gently with a dry brush, not a wet cloth."]},
+ {id:"philo-birkin",name:"Philodendron Birkin",latin:"Philodendron 'Birkin'",kind:"leaf",light:["medium","bright"],water:7,care:"moderate",pet:false,hum:"50%+",temp:"18–27 °C",how:"Let the top 5 cm (2 in) dry, then water until it drains.",tips:["Bright indirect light keeps the white pinstripes.","Leaves reverting to solid green can be cut back to a striped node."]},
+ {id:"philo-pink",name:"Philodendron Pink Princess",latin:"Philodendron erubescens 'Pink Princess'",kind:"leaf",light:["bright"],water:7,care:"moderate",pet:false,hum:"50%+",temp:"18–27 °C",how:"Let the top 5 cm (2 in) dry. Pink sections rot first if the soil stays wet.",tips:["Fully pink leaves can't photosynthesise and often brown; this is normal.","Give it a moss pole for bigger leaves."]},
+ {id:"philo-congo",name:"Philodendron Imperial Green",latin:"Philodendron 'Imperial Green'",kind:"leaf",light:["low","medium","bright"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"16–27 °C",how:"Water when the top 5 cm (2 in) is dry.",tips:["A self-heading type: grows as a clump, no pole needed.","Handles lower light better than most philodendrons."]},
+ {id:"philo-selloum",name:"Split-leaf philodendron",latin:"Thaumatophyllum bipinnatifidum",aka:"philodendron selloum hope tree philodendron",kind:"leaf",light:["medium","bright"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"15–29 °C",how:"Water deeply when the top 5 cm (2 in) is dry. Big plants drink a lot in summer.",tips:["Usually needs a 12 in pot or larger once mature.","Aerial roots can be tucked back into the pot."]},
+ {id:"philo-xanadu",name:"Philodendron Xanadu",latin:"Thaumatophyllum xanadu",aka:"philodendron xanadu winterbourn",kind:"leaf",light:["medium","bright"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"15–29 °C",how:"Water when the top 5 cm (2 in) is dry.",tips:["Compact and wide; give it room to spread.","Pale, stretched leaves mean it needs more light."]},
+ {id:"fiddle",name:"Fiddle-leaf fig",latin:"Ficus lyrata",kind:"tree",light:["bright","sun"],water:7,care:"fussy",pet:false,hum:"40–60%",temp:"18–27 °C",how:"Water thoroughly when the top 5 cm is dry. Keep the routine steady.",tips:["Dislikes being moved; pick a spot and leave it.","Brown edges often come from drafts or uneven watering.","Rotate a quarter turn monthly for even growth."]},
+ {id:"rubber",name:"Rubber plant",latin:"Ficus elastica",kind:"tree",light:["medium","bright"],water:10,care:"easy",pet:false,hum:"40–60%",temp:"16–29 °C",how:"Water when the top 5 cm is dry. Reduce in winter.",tips:["Sap irritates skin; wear gloves when pruning.","Dropped lower leaves usually mean overwatering or cold."]},
+ {id:"peacelily",name:"Peace lily",latin:"Spathiphyllum wallisii",kind:"flower",light:["low","medium"],water:5,care:"easy",pet:false,hum:"50%+",temp:"18–27 °C",how:"Keep lightly moist. It wilts dramatically when dry and recovers within hours of watering.",tips:["Use filtered water if leaf tips turn brown.","Needs medium light to flower."]},
+ {id:"spider",name:"Spider plant",latin:"Chlorophytum comosum",kind:"grass",light:["medium","bright"],water:7,care:"easy",pet:true,hum:"40–60%",temp:"13–27 °C",how:"Water when the top 2–3 cm is dry. Thick roots store water.",tips:["Pot up the baby plantlets in small pots.","Brown tips often come from fluoride in tap water."]},
+ {id:"boston",name:"Boston fern",latin:"Nephrolepis exaltata",kind:"fern",light:["medium"],water:3,care:"moderate",pet:true,hum:"60%+",temp:"16–24 °C",how:"Keep soil evenly moist, never soggy. Never let it dry out fully.",tips:["Thrives in a bathroom with a window.","Crispy fronds mean low humidity."]},
+ {id:"calathea",name:"Calathea orbifolia",latin:"Goeppertia orbifolia",kind:"leaf",light:["medium"],water:5,care:"fussy",pet:true,hum:"60%+",temp:"18–27 °C",how:"Keep evenly moist with room-temperature filtered or rain water.",tips:["Leaves curl when thirsty or when air is dry.","Keep out of direct sun to avoid faded leaves."]},
+ {id:"maranta",name:"Prayer plant",latin:"Maranta leuconeura",kind:"leaf",light:["medium"],water:5,care:"moderate",pet:true,hum:"50%+",temp:"18–27 °C",how:"Water when the top 2 cm is dry. Prefers consistent moisture.",tips:["Leaves fold up at night; that is normal.","Group with other plants to raise humidity."]},
+ {id:"aloe",name:"Aloe vera",latin:"Aloe vera",kind:"succulent",light:["bright","sun"],water:21,care:"easy",pet:false,hum:"Any",temp:"13–27 °C",how:"Soak the soil, then wait until it is completely dry.",tips:["Thin, curling leaves mean it is thirsty.","Use a shallow, well-draining pot."]},
+ {id:"jade",name:"Jade plant",latin:"Crassula ovata",kind:"succulent",light:["bright","sun"],water:14,care:"easy",pet:false,hum:"Any",temp:"13–24 °C",how:"Water deeply when soil is dry all the way down.",tips:["Wrinkled leaves mean thirst; soft yellow leaves mean too much water.","A few hours of direct sun keep it compact."]},
+ {id:"echeveria",name:"Echeveria",latin:"Echeveria elegans",kind:"succulent",light:["sun"],water:14,care:"easy",pet:true,hum:"Any",temp:"10–27 °C",how:"Soak and dry. Water the soil, not the rosette.",tips:["Stretching toward the window means too little light.","Remove dead lower leaves to prevent rot."]},
+ {id:"xmascactus",name:"Christmas cactus",latin:"Schlumbergera × buckleyi",kind:"succulent",light:["bright"],water:10,care:"easy",pet:true,hum:"50%+",temp:"15–24 °C",how:"Water when the top third is dry. Ease off for 6 weeks in autumn to set buds.",tips:["Long nights (14 h dark) in autumn trigger flowering.","Don't move it once buds form."]},
+ {id:"barrel",name:"Golden barrel cactus",latin:"Echinocactus grusonii",kind:"cactus",light:["sun"],water:28,care:"easy",pet:true,hum:"Any",temp:"10–30 °C",how:"Water every 3–4 weeks in summer. Hardly at all in winter.",tips:["Non-toxic, but the spines are sharp.","Needs the sunniest window you have."]},
+ {id:"pilea",name:"Chinese money plant",latin:"Pilea peperomioides",kind:"round",light:["bright"],water:7,care:"easy",pet:true,hum:"40–60%",temp:"15–27 °C",how:"Water when the top half of the soil is dry. Leaves droop when thirsty.",tips:["Rotate weekly so it grows straight.","Pups at the base can be separated and shared."]},
+ {id:"peperomia",name:"Baby rubber plant",latin:"Peperomia obtusifolia",kind:"round",light:["medium","bright"],water:10,care:"easy",pet:true,hum:"40–50%",temp:"18–26 °C",how:"Let the top half of the soil dry. Thick leaves store water.",tips:["Small root system: keep it in a small pot.","Soggy soil leads to stem rot quickly."]},
+ {id:"hoya",name:"Wax plant",latin:"Hoya carnosa",kind:"vine",light:["bright"],water:14,care:"easy",pet:true,hum:"40–60%",temp:"16–27 °C",how:"Let the soil dry nearly completely. Leaves feel soft when it is thirsty.",tips:["Don't cut the spent flower spurs; they rebloom.","Blooms best when slightly root-bound."]},
+ {id:"pearls",name:"String of pearls",latin:"Curio rowleyanus",kind:"succulent",light:["bright"],water:14,care:"moderate",pet:false,hum:"Any",temp:"16–27 °C",how:"Water when soil is dry and pearls look slightly wrinkled.",tips:["Shallow pot, gritty mix.","Keep the crown at soil level dry to avoid rot."]},
+ {id:"bop",name:"Bird of paradise",latin:"Strelitzia reginae",kind:"tree",light:["bright","sun"],water:7,care:"moderate",pet:false,hum:"50%+",temp:"18–30 °C",how:"Water when the top 5 cm is dry. Less in winter.",tips:["Split leaves are normal; they let wind through in the wild.","Needs several years and strong light to flower indoors."]},
+ {id:"parlor",name:"Parlor palm",latin:"Chamaedorea elegans",kind:"palm",light:["low","medium"],water:7,care:"easy",pet:true,hum:"40–60%",temp:"18–27 °C",how:"Water when the top 2–3 cm is dry.",tips:["One of the few palms that handles low light.","Brown tips: trim them at an angle with clean scissors."]},
+ {id:"areca",name:"Areca palm",latin:"Dypsis lutescens",kind:"palm",light:["bright"],water:5,care:"moderate",pet:true,hum:"50%+",temp:"18–27 °C",how:"Keep slightly moist. Water when the top 2 cm is dry.",tips:["Sensitive to salts: flush the pot with plain water every few months.","Mist or use a humidifier in winter."]},
+ {id:"marginata",name:"Dracaena Marginata (dragon tree)",latin:"Dracaena marginata",aka:"dragon tree madagascar",kind:"palm",light:["medium","bright"],water:10,care:"easy",pet:false,hum:"40–50%",temp:"16–24 °C",how:"Water when the top half of the soil is dry.",tips:["Sensitive to fluoride; filtered or rain water prevents brown tips.","Shed lower leaves are normal as it grows taller."]},
+ {id:"dr-corn",name:"Dracaena Corn plant",latin:"Dracaena fragrans 'Massangeana'",aka:"corn plant mass cane",kind:"palm",light:["low","medium","bright"],water:10,care:"easy",pet:false,hum:"40–60%",temp:"16–27 °C",how:"Water when the top half of the soil is dry. Never let it sit in a wet saucer.",tips:["Brown, mushy leaf bases mean the soil is staying wet too long.","Brown tips alone usually mean fluoride or dry air, not thirst."]},
+ {id:"dr-janet",name:"Dracaena Janet Craig",latin:"Dracaena fragrans 'Janet Craig'",kind:"palm",light:["low","medium"],water:10,care:"easy",pet:false,hum:"40–60%",temp:"16–27 °C",how:"Water when the top half is dry. Low light means slower drying, so check before watering.",tips:["One of the best large plants for low light.","Dust the leaves so they can use what light they get."]},
+ {id:"dr-lemon",name:"Dracaena Lemon Lime",latin:"Dracaena fragrans 'Lemon Lime'",aka:"warneckii",kind:"palm",light:["medium","bright"],water:10,care:"easy",pet:false,hum:"40–60%",temp:"16–27 °C",how:"Water when the top half is dry.",tips:["More light keeps the yellow stripes bright.","Use filtered water to avoid brown tips."]},
+ {id:"dr-reflexa",name:"Dracaena Song of India",latin:"Dracaena reflexa 'Variegata'",kind:"palm",light:["bright"],water:10,care:"moderate",pet:false,hum:"50%+",temp:"16–27 °C",how:"Water when the top 5 cm (2 in) is dry. Slightly thirstier than other dracaenas.",tips:["Drops leaves if it is moved or chilled.","Prune leggy stems to make it branch."]},
+ {id:"dr-bamboo",name:"Lucky bamboo",latin:"Dracaena sanderiana",kind:"grass",light:["low","medium"],water:7,care:"easy",pet:false,hum:"Any",temp:"18–29 °C",how:"In water: keep roots covered and replace the water every 1–2 weeks. In soil: keep lightly moist.",tips:["Use filtered or distilled water.","Yellow stalks don't recover; remove them."]},
+ {id:"aglaonema",name:"Chinese evergreen",latin:"Aglaonema commutatum",kind:"leaf",light:["low","medium"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"18–27 °C",how:"Water when the top 2–3 cm is dry.",tips:["Dark-green varieties handle the lowest light.","Keep away from cold drafts below 15 °C."]},
+ {id:"castiron",name:"Cast iron plant",latin:"Aspidistra elatior",kind:"leaf",light:["low"],water:10,care:"easy",pet:true,hum:"Any",temp:"7–29 °C",how:"Water when the top half of the soil is dry.",tips:["Handles neglect, dim hallways, and cool rooms.","Grows slowly; repot every few years."]},
+ {id:"ivy",name:"English ivy",latin:"Hedera helix",kind:"vine",light:["medium","bright"],water:5,care:"moderate",pet:false,hum:"50%+",temp:"10–21 °C",how:"Keep lightly moist. Water when the top 2 cm is dry.",tips:["Prefers cooler rooms.","Prone to spider mites in dry air; rinse leaves often."]},
+ {id:"orchid",name:"Moth orchid",latin:"Phalaenopsis",kind:"flower",light:["bright"],water:7,care:"moderate",pet:true,hum:"50–70%",temp:"18–29 °C",how:"Soak the bark pot for 10 minutes, then drain fully. Water when roots turn silvery.",tips:["Green roots mean it is watered; silver means water now.","Cut the spike above a node to encourage reblooming."]},
+ {id:"violet",name:"African violet",latin:"Streptocarpus ionanthus",kind:"flower",light:["bright"],water:5,care:"moderate",pet:true,hum:"50%+",temp:"18–24 °C",how:"Bottom-water for 20 minutes when the top is dry. Keep water off the leaves.",tips:["Cold water on leaves leaves pale spots.","Flowers best with 12 hours of light."]},
+ {id:"basil",name:"Basil",latin:"Ocimum basilicum",kind:"herb",light:["sun"],water:2,care:"moderate",pet:true,hum:"40–60%",temp:"18–30 °C",how:"Keep soil consistently moist. Water at the base in the morning.",tips:["Pinch off flower buds to keep leaves coming.","Harvest from the top, just above a leaf pair."]},
+ {id:"rosemary",name:"Rosemary",latin:"Salvia rosmarinus",kind:"herb",light:["sun"],water:7,care:"moderate",pet:true,hum:"30–50%",temp:"10–27 °C",how:"Let the top 3 cm dry, then water deeply. Hates wet feet.",tips:["Needs 6+ hours of sun.","Indoors in winter, a cool bright window works best."]},
+ {id:"lavender",name:"English lavender",latin:"Lavandula angustifolia",kind:"herb",light:["sun"],water:10,care:"moderate",pet:false,hum:"Low",temp:"10–30 °C",how:"Water when the soil is dry 5 cm down. Established plants are drought tolerant.",tips:["Use gritty, alkaline soil.","Prune after flowering, never into old wood."]},
+ {id:"tomato",name:"Tomato (container)",latin:"Solanum lycopersicum",kind:"herb",light:["sun"],water:2,care:"moderate",pet:false,hum:"Any",temp:"18–29 °C",how:"Water deeply and regularly; daily in hot weather. Uneven watering causes split fruit.",tips:["Use a pot of at least 20 litres.","Mulch the surface to hold moisture."]},
+ {id:"guzmania",name:"Bromeliad",latin:"Guzmania lingulata",kind:"flower",light:["bright"],water:7,care:"easy",pet:true,hum:"50%+",temp:"18–27 °C",how:"Keep the central cup a quarter full and refresh it weekly. Water the soil lightly.",tips:["Each rosette flowers once, then makes pups.","Use rain or filtered water."]},
+ {id:"tillandsia",name:"Air plant",latin:"Tillandsia ionantha",kind:"grass",light:["bright"],water:7,care:"easy",pet:true,hum:"50%+",temp:"10–30 °C",how:"Soak for 20–30 minutes weekly, then dry upside down within 4 hours.",tips:["No soil needed.","Trapped water in the base causes rot."]},
+ {id:"alocasia",name:"Alocasia Polly",latin:"Alocasia × amazonica",kind:"leaf",light:["bright"],water:5,care:"fussy",pet:false,hum:"60%+",temp:"18–29 °C",how:"Keep lightly moist in summer. Let the top 3 cm dry between waterings.",tips:["May go dormant in winter; reduce watering then.","Check leaf undersides for spider mites."]},
+ {id:"tradescantia",name:"Inch plant",latin:"Tradescantia zebrina",kind:"vine",light:["bright"],water:7,care:"easy",pet:false,hum:"40–60%",temp:"13–27 °C",how:"Water when the top 2 cm is dry.",tips:["Bright light keeps the purple and silver colour.","Pinch stems often; it gets leggy fast."]},
+ {id:"croton",name:"Croton",latin:"Codiaeum variegatum",kind:"leaf",light:["bright","sun"],water:5,care:"fussy",pet:false,hum:"50%+",temp:"18–29 °C",how:"Keep soil evenly moist in summer. Water when the top 2 cm is dry.",tips:["Drops leaves when moved; give it time to settle.","More sun means stronger leaf colour."]},
+ {id:"money",name:"Money tree",latin:"Pachira aquatica",kind:"tree",light:["medium","bright"],water:10,care:"easy",pet:true,hum:"50%+",temp:"16–27 °C",how:"Water thoroughly when the top half is dry.",tips:["Braided trunks are separate plants; keep them all watered evenly.","Rotate for even growth."]}
+];
+const VARI = {"pothos":"yellow","philo-brasil":"yellow","philo-birkin":"white","philo-pink":"pink","dr-lemon":"yellow","dr-reflexa":"yellow","croton":"yellow","marginata":"pink","tradescantia":"white","snake":"yellow","calathea":"white","aglaonema":"white","dr-corn":"yellow","maranta":"pink"};
+const BY_ID = Object.fromEntries(C.map(p=>[p.id,p]));
+const KINDS = ["leaf","vine","succulent","cactus","fern","palm","tree","flower","herb","grass","round"];
+const LIGHT = {low:"Low light",medium:"Medium light",bright:"Bright indirect",sun:"Direct sun"};
+const LIGHT_FC = {low:"50–150 fc",medium:"150–300 fc",bright:"300–800 fc",sun:"800+ fc"};
+const CARE = {easy:"Easy",moderate:"Moderate",fussy:"Fussy"};
+const POT_COLORS = {terracotta:"#C8714B",cream:"#ECE6D6",sky:"#8FBCD4",blush:"#E7A9A0",charcoal:"#4A4D4B",mint:"#A9D3B5"};
+
+// ---------- Helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => iso(new Date());
+function ymd(s){ const [y,m,d]=s.split("-").map(Number); return [y,m-1,d]; }
+const parse = s => new Date(...ymd(s));
+const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return iso(d); };
+const diff = (a,b) => Math.round((Date.UTC(...ymd(b)) - Date.UTC(...ymd(a)))/864e5);
+const fmt = (s,o={month:"short",day:"numeric"}) => parse(s).toLocaleDateString(undefined,o);
+const hash = s => { let h=0; for (const c of String(s)) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); };
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+
+// ---------- Pot math (catalog intervals assume a 6 in plastic pot) ----------
+const POT_SIZES = [4,5,6,8,10,12,14,16];
+const MATERIAL = {plastic:{label:"Plastic or glazed",f:1},terracotta:{label:"Terracotta",f:0.8},fabric:{label:"Fabric grow bag",f:0.7},selfwater:{label:"Self-watering",f:1.6}};
+const SIZE = {small:{label:"Small",f:1.1,scale:.8},medium:{label:"Medium",f:1,scale:1},large:{label:"Large",f:.9,scale:1.18}};
+const potFactor = d => clamp(1 + ((Number(d)||6) - 6) * 0.1, 0.7, 2);
+const recommended = (sp, pot, mat, size) => Math.max(1, Math.round((sp.water||7) * potFactor(pot) * (MATERIAL[mat]?.f||1) * (SIZE[size]?.f||1)));
+function soilLitres(d){ const D=(Number(d)||6)*2.54, b=D*.75, h=D*.9; return Math.PI*h/12*(D*D+D*b+b*b)/1000; }
+function waterAmount(d){ const L = soilLitres(d)*.22, cups = Math.round(L*4.227);
+  return `about ${L<1?Math.round(L*1000)+" ml":L.toFixed(1)+" L"} (${cups<16?cups+" cups":(L/3.785).toFixed(1)+" gal"})`; }
+const potLabel = p => p.pot ? `${p.pot}″ ${p.material && p.material!=="plastic" ? MATERIAL[p.material].label.toLowerCase() : "pot"}` : "";
+
+function species(p){ return BY_ID[p.speciesId] || p.custom || {name:p.nickname,latin:"",kind:p.kind||"leaf",water:p.interval||7,light:["medium"],care:"easy",pet:false,hum:"—",temp:"—",how:"",tips:[]}; }
+function isWinter(s){ if (s.winter==="on") return true; if (s.winter==="off") return false;
+  const m = new Date().getMonth(); return s.hemisphere==="south" ? (m>=4&&m<=7) : (m>=10||m<=1); }
+const effInterval = (p,s) => { const b = Number(p.interval) || species(p).water || 7; return isWinter(s) ? Math.round(b*1.5) : b; };
+function nextDue(p,s){ const due = addDays(p.lastWatered||today(), effInterval(p,s)); return p.snoozedTo && p.snoozedTo > due ? p.snoozedTo : due; }
+function status(p,s){
+  const t = today(), due = nextDue(p,s), d = diff(t,due);
+  let mood, label;
+  if (d < 0){ mood="wilted"; label = `Wilting · ${-d} day${d===-1?"":"s"} late`; }
+  else if (d === 0){ mood="thirsty"; label = "Thirsty · water today"; }
+  else { mood="happy"; label = d===1 ? "Happy · water tomorrow" : `Happy · water ${fmt(due,{weekday:"short"})}`; }
+  return {due,d,mood,label};
+}
+function rhythm(p){ const h=(p.history||[]).slice().sort(); if (h.length<3) return null;
+  const g=[]; for(let i=1;i<h.length;i++) g.push(diff(h[i-1],h[i])); const l=g.slice(-4); return Math.round(l.reduce((a,b)=>a+b,0)/l.length); }
+
+// ---------- Plant pal drawing ----------
+// Leaves are drawn pointing up from (0,0); each sits in a .lf group that the CSS droops or revives.
+function leafPath(shape,L,w){
+  switch(shape){
+    case "heart": return `M0 ${-L} C ${w*1.15} ${-L*.6} ${w*1.05} ${-L*.08} ${w*.4} ${-L*.04} C ${w*.12} ${-L*.02} 0 ${-L*.14} 0 ${-L*.14} C 0 ${-L*.14} ${-w*.12} ${-L*.02} ${-w*.4} ${-L*.04} C ${-w*1.05} ${-L*.08} ${-w*1.15} ${-L*.6} 0 ${-L} Z`;
+    case "strap": return `M${-w*.5} 0 C ${-w} ${-L*.45} ${-w*.6} ${-L*.8} 0 ${-L} C ${w*.6} ${-L*.8} ${w} ${-L*.45} ${w*.5} 0 Z`;
+    case "chunky": return `M0 0 C ${w} ${-L*.15} ${w*1.05} ${-L*.75} 0 ${-L} C ${-w*1.05} ${-L*.75} ${-w} ${-L*.15} 0 0 Z`;
+    case "column": return `M${-w} 0 L ${-w} ${-L+w} A ${w} ${w} 0 0 1 ${w} ${-L+w} L ${w} 0 Z`;
+    case "blade": return `M${-w} 0 Q ${-w*.4} ${-L*.6} ${w*.3} ${-L} Q ${w*.2} ${-L*.5} ${w} 0 Z`;
+    default: return `M0 0 C ${w} ${-L*.25} ${w} ${-L*.8} 0 ${-L} C ${-w} ${-L*.8} ${-w} ${-L*.25} 0 0 Z`; // broad
+  }
+}
+const R = (a,b,c,d,e,f,g) => ({a,L:b,shape:c,w:d,stem:e||0,bx:f||0,by:g||0});
+const RECIPES = {
+  leaf:[R(-58,22,"broad",11,14),R(-28,27,"broad",13,22),R(4,30,"broad",14,28),R(34,26,"broad",12,22),R(62,21,"broad",10,12)],
+  vine:[R(-22,16,"heart",10,14),R(18,17,"heart",10,20),R(-4,15,"heart",9,30),R(-112,12,"heart",8,16,-10),R(116,12,"heart",8,20,10),R(-138,11,"heart",7,26,-14),R(142,11,"heart",7,30,14)],
+  succulent:[R(-72,15,"chunky",7,0,-4),R(-38,18,"chunky",8),R(0,20,"chunky",8),R(38,18,"chunky",8),R(72,15,"chunky",7,0,4),R(-18,13,"chunky",6,0,0,-3),R(18,13,"chunky",6,0,0,-3)],
+  cactus:[R(0,46,"column",11),R(-90,10,"column",5,0,-10,-20),R(90,12,"column",5,0,10,-28)],
+  fern:[R(-75,34,"fern",9),R(-48,38,"fern",9),R(-18,40,"fern",9),R(14,40,"fern",9),R(44,38,"fern",9),R(72,34,"fern",9)],
+  palm:[R(-62,28,"strap",6,0,0,-24),R(-34,32,"strap",6,0,0,-26),R(-8,34,"strap",6,0,0,-27),R(18,33,"strap",6,0,0,-27),R(44,30,"strap",6,0,0,-26),R(70,26,"strap",6,0,0,-24),R(-48,24,"strap",5,0,0,-14),R(52,22,"strap",5,0,0,-12)],
+  tree:[R(-60,14,"broad",7,0,0,-34),R(-30,16,"broad",8,0,0,-40),R(0,17,"broad",8,0,0,-42),R(30,16,"broad",8,0,0,-40),R(60,14,"broad",7,0,0,-34),R(-90,12,"broad",6,0,0,-28),R(90,12,"broad",6,0,0,-28)],
+  flower:[R(-60,20,"broad",9,4),R(-24,22,"broad",10,6),R(24,22,"broad",10,6),R(60,20,"broad",9,4),R(-8,8,"bloom",7,34),R(14,8,"bloom",7,28)],
+  herb:[R(-60,11,"broad",6,0,0,-8),R(60,11,"broad",6,0,0,-8),R(-55,12,"broad",6,0,0,-20),R(55,12,"broad",6,0,0,-20),R(-45,11,"broad",6,0,0,-32),R(45,11,"broad",6,0,0,-32),R(0,10,"broad",6,0,0,-40)],
+  grass:[R(-50,30,"blade",3),R(-28,36,"blade",3),R(-8,40,"blade",3),R(10,38,"blade",3),R(30,34,"blade",3),R(52,28,"blade",3),R(-66,22,"blade",3),R(68,22,"blade",3)],
+  round:[R(-50,10,"coin",8,24),R(-22,10,"coin",9,32),R(6,10,"coin",9,36),R(32,10,"coin",9,30),R(58,10,"coin",8,22)]
+};
+const STEMS = {palm:28,tree:36,herb:40};
+function leafSVG(r,col,vcol,i){
+  const s = r.a < -2 ? -1 : r.a > 2 ? 1 : (i%2?1:-1);
+  const dl = `${(i*0.37)%1.6}s`;
+  let body = "";
+  const stem = r.stem ? `<path d="M0 0 L0 ${-r.stem}" stroke="${col.dark}" stroke-width="1.6" stroke-linecap="round"/>` : "";
+  const ty = -r.stem;
+  if (r.shape==="coin") body = `<circle cx="0" cy="${ty-r.w}" r="${r.w}" fill="${col.fill}" stroke="${col.dark}" stroke-width="1"/>`;
+  else if (r.shape==="bloom") body = [0,72,144,216,288].map(a=>`<ellipse cx="0" cy="${ty-r.w}" rx="${r.w*.45}" ry="${r.w}" transform="rotate(${a} 0 ${ty})" fill="${col.bloom}"/>`).join("") + `<circle cx="0" cy="${ty}" r="${r.w*.4}" fill="#F3C64B"/>`;
+  else if (r.shape==="fern"){
+    let p = `<path d="M0 0 Q ${r.L*.15} ${-r.L*.5} 0 ${-r.L}" stroke="${col.dark}" stroke-width="1.4" fill="none"/>`;
+    for (let k=1;k<8;k++){ const y=-r.L*k/8, len=r.w*(1-k/9); p += `<path d="M0 ${y} q ${-len} ${-2} ${-len} ${-5} M0 ${y} q ${len} ${-2} ${len} ${-5}" stroke="${col.fill}" stroke-width="3" stroke-linecap="round" fill="none"/>`; }
+    body = p;
+  } else {
+    const d = leafPath(r.shape,r.L,r.w);
+    body = `<g transform="translate(0 ${ty})"><path d="${d}" fill="${col.fill}" stroke="${col.dark}" stroke-width="1"/>` +
+      (vcol ? `<path d="${leafPath(r.shape,r.L*.7,r.w*.45)}" transform="translate(0 ${-r.L*.12})" fill="${vcol}" opacity=".85"/>` : "") +
+      (r.shape!=="column" && r.shape!=="blade" ? `<path d="M0 0 L0 ${-r.L*.85}" stroke="${col.dark}" stroke-width=".8" opacity=".6"/>` : "") + `</g>`;
+  }
+  return `<g transform="translate(${r.bx} ${r.by}) rotate(${r.a})"><g class="lf" style="--s:${s};--dl:${dl}">${stem}${body}</g></g>`;
+}
+function palColors(key, hue){
+  const h = hue ?? (95 + hash(key)%45);
+  return {fill:`hsl(${h} 42% 40%)`, dark:`hsl(${h} 45% 24%)`, bloom:`hsl(${(hash(key)%2)?330:270} 60% 72%)`};
+}
+const VCOL = {white:"#F2F1E8",yellow:"#D8D45E",pink:"#EE9DBB"};
+function palSVG({key, kind="leaf", hue, vari, potColor="terracotta", size="medium", mood="happy", face=true}){
+  const col = palColors(key, hue), vcol = VCOL[vari] || null;
+  const rec = RECIPES[kind] || RECIPES.leaf, sc = SIZE[size]?.scale || 1;
+  const pc = POT_COLORS[potColor] || potColor || POT_COLORS.terracotta;
+  const trunk = STEMS[kind] ? `<path d="M0 0 L0 ${-STEMS[kind]+4}" stroke="${kind==="herb"?col.dark:"#7A5A3A"}" stroke-width="${kind==="herb"?2:4}" stroke-linecap="round"/>` : "";
+  const leaves = rec.map((r,i)=>leafSVG(r,col,vcol,i)).join("");
+  const eyes = mood==="wilted"
+    ? `<path class="eye" d="M48 111 q3 2 6 0 M66 111 q3 2 6 0" stroke="#2A221C" stroke-width="2" fill="none" stroke-linecap="round"/>`
+    : `<ellipse class="eye ${mood==="happy"?"blink":""}" cx="51" cy="110" rx="2.6" ry="${mood==="thirsty"?2:3}" fill="#2A221C"/><ellipse class="eye ${mood==="happy"?"blink":""}" cx="69" cy="110" rx="2.6" ry="${mood==="thirsty"?2:3}" fill="#2A221C"/>`;
+  const mouth = mood==="happy" ? `M54 117 q6 6 12 0` : mood==="thirsty" ? `M55 119 q5 -2 10 0` : `M54 121 q6 -6 12 0`;
+  const cheeks = mood==="happy" ? `<circle cx="45" cy="116" r="3" fill="#F08A8A" opacity=".45"/><circle cx="75" cy="116" r="3" fill="#F08A8A" opacity=".45"/>` : "";
+  const sweat = mood!=="happy" ? `<path class="sweat" d="M80 100 q-3 5 0 7 q3 -2 0 -7z" fill="#8CC8E6"/>` : "";
+  const faceSVG = face ? `<g class="face">${eyes}<path class="mouth" d="${mouth}" stroke="#2A221C" stroke-width="2" fill="none" stroke-linecap="round"/>${cheeks}${sweat}</g>` : "";
+  return `<svg viewBox="0 0 120 140" class="pal" aria-hidden="true">
+    <ellipse cx="60" cy="134" rx="34" ry="4" fill="#000" opacity=".08"/>
+    <g class="foliage" transform="translate(60 92) scale(${sc})">${trunk}${leaves}</g>
+    <path d="M32 96 L88 96 L82 132 Q81 135 78 135 L42 135 Q39 135 38 132 Z" fill="${pc}"/>
+    <rect x="28" y="88" width="64" height="11" rx="3" fill="${pc}"/><rect x="28" y="88" width="64" height="11" rx="3" fill="#000" opacity=".1"/>
+    <path d="M36 99 L84 99" stroke="#000" opacity=".08" stroke-width="2"/>
+    ${faceSVG}
+    <g class="can"><path d="M86 34 h22 v16 a3 3 0 0 1-3 3 h-16 a3 3 0 0 1-3-3z" fill="#6DB7DC"/><path d="M86 38 L70 30" stroke="#6DB7DC" stroke-width="4" stroke-linecap="round"/><path d="M108 38 q8 4 0 12" stroke="#6DB7DC" stroke-width="3" fill="none"/></g>
+    <g class="drops">${[0,1,2,3,4].map(i=>`<circle cx="${60+(i-2)*7}" cy="${46+(i%2)*5}" r="2" fill="#6DB7DC" style="--dl:${i*.12}s"/>`).join("")}</g>
+    ${[[30,50],[92,58],[60,30],[40,76]].map(([x,y])=>`<path class="spark" d="M${x} ${y-5} L${x+1.5} ${y-1.5} L${x+5} ${y} L${x+1.5} ${y+1.5} L${x} ${y+5} L${x-1.5} ${y+1.5} L${x-5} ${y} L${x-1.5} ${y-1.5}Z" fill="#F3C64B"/>`).join("")}
+  </svg>`;
+}
+function palFor(p, mood){ const sp = species(p);
+  return palSVG({key:p.speciesId||p.nickname, kind:p.kind||sp.kind, hue:p.hue, vari:p.vari ?? VARI[p.speciesId], potColor:p.potColor||(p.material==="terracotta"?"terracotta":"cream"), size:p.size, mood}); }
+function catalogIcon(sp){ return palSVG({key:sp.id, kind:sp.kind, vari:VARI[sp.id], potColor:"terracotta", mood:"happy", face:false}); }
+
+// ---------- Store (private per-viewer db, or this browser) ----------
+const state = { plants:[], settings:{}, ready:false, mode:"local", tab:"garden", q:"", f:{light:null,care:null,pet:false}, busy:new Set(), revive:{}, id:null, sheet:null };
+function localStore(){
+  const K = "watering-can-v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(K)) || {plants:[],settings:{}}; } catch { return {plants:[],settings:{}}; } };
+  const save = v => { try { localStorage.setItem(K, JSON.stringify(v)); } catch {} };
+  let v = load();
+  const emit = () => { state.plants = v.plants.slice(); state.settings = {...v.settings}; render(); };
+  return { mode:"local", start: emit,
+    async add(p){ v.plants.push({id:"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),...p}); save(v); emit(); },
+    async update(id,patch){ v.plants = v.plants.map(p=>p.id===id?{...p,...patch}:p); save(v); emit(); },
+    async remove(id){ v.plants = v.plants.filter(p=>p.id!==id); save(v); emit(); },
+    async setSettings(s){ v.settings = s; save(v); emit(); } };
+}
+async function dbStore(){
+  if (!window.claude?.use) return null;
+  const [db,user] = await Promise.all([claude.use("db"), claude.use("user")]);
+  if (!db || !user) return null;
+  const uid = await user.id(); if (!uid) return null;
+  const garden = db.doc(`data/users/${uid}/garden`), col = garden.collection("plants");
+  return { mode:"db",
+    start(){
+      col.onSnapshot(s => { state.plants = s.docs.map(d=>({id:d.id,...d.data()})); state.ready = true; render(); },
+        e => toast(e.code==="revoked" ? "Your plants are no longer available on this page." : "Couldn't load your plants. Reload to try again."));
+      garden.onSnapshot(s => { state.settings = s.exists ? {...s.data()} : {}; render(); }, ()=>{});
+    },
+    async add(p){ await col.doc().set(p); },
+    async update(id,patch){ await col.doc(id).update(patch); },
+    async remove(id){ await col.doc(id).delete(); },
+    async setSettings(s){ await garden.set(s); } };
+}
+let store = null, sample = null, downloads = null;
+async function init(){
+  let s = null; try { s = await dbStore(); } catch {}
+  store = s || localStore(); state.mode = store.mode;
+  if (store.mode==="local") state.ready = true;
+  store.start(); render();
+}
+async function initClaude(){
+  if (!window.claude?.use) { renderAddAvailability(); return; }
+  try { sample = await claude.use("sample"); } catch { sample = null; }
+  try { downloads = await claude.use("downloads"); } catch { downloads = null; }
+  renderAddAvailability(); render();
+}
+async function act(key, fn, ok){
+  if (!store || state.busy.has(key)) return false;
+  state.busy.add(key); render();
+  try { await fn(); if (ok) toast(ok); return true; }
+  catch(e){ toast(e?.code==="quota_exceeded" ? "Storage is full. Remove a plant or an old photo." : e?.code==="invalid_argument" ? "You don't have permission to save plants on this page." : "That didn't save. Try again."); return false; }
+  finally { state.busy.delete(key); render(); }
+}
+
+// ---------- Images ----------
+function loadImage(file){ return new Promise((res,rej)=>{ const url = URL.createObjectURL(file); const img = new Image(); img.onload=()=>{res(img)}; img.onerror=rej; img.src=url; }); }
+function scaled(img, max, type="image/jpeg", q=.8){
+  const k = Math.min(1, max/Math.max(img.naturalWidth,img.naturalHeight));
+  const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth*k); c.height = Math.round(img.naturalHeight*k);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+  return {dataUrl: c.toDataURL(type,q), blob: () => new Promise(r=>c.toBlob(r,type,q))};
+}
+async function thumb(file, max=220){ const img = await loadImage(file); return scaled(img,max,"image/jpeg",.7).dataUrl; }
+async function forClaude(file){ const img = await loadImage(file); return await scaled(img,1024,"image/jpeg",.85).blob(); }
+
+// ---------- Claude: identify + health ----------
+const HEALTH_SHAPE = `"health":{"status":"healthy"|"watch"|"problem","summary":"one sentence","issues":[{"name":"short name","signs":"what in the photo shows it","fix":"what to do, 1-2 sentences"}],"supplies":["things to keep on hand to treat or prevent these, e.g. neem oil, sterile potting mix, moisture meter"]}`;
+function sampleError(e){
+  return e?.code==="not_granted" ? "Claude access wasn't allowed for this page, so photos can't be checked. You can still pick plants from the catalog."
+    : e?.code==="rate_limited" ? "Too many requests in a row. Wait a minute and try again."
+    : e?.code==="images_unavailable" ? "Sending photos to Claude isn't available here. Pick from the catalog instead."
+    : "Claude couldn't look at that photo. Try another photo, or pick from the catalog.";
+}
+async function identify(blob){
+  const list = C.map(p=>`${p.id}=${p.name} (${p.latin})`).join("; ");
+  const prompt = `You are the plant expert inside a houseplant care app. Look at the photo, identify the plant, estimate pot and plant size, and check its health.
+Catalog of known plants (id=name): ${list}
+Reply with JSON only, no prose, in exactly this shape:
+{"matchId": catalog id if it is one of these species or cultivars, else null,
+ "name": common name, "latin": botanical name, "confidence": "high"|"medium"|"low",
+ "kind": one of ${KINDS.join("|")} (closest drawing style: vine=trailing, palm=strap leaves on a cane like dracaena, round=coin leaves),
+ "leafHue": number 60-170 (HSL hue of the leaves), "variegation": "none"|"white"|"yellow"|"pink",
+ "plantSize": "small"|"medium"|"large", "potInches": estimated pot diameter in inches (4-16) or null,
+ "care": {"water": days between waterings for this plant in a 6-inch plastic pot in spring/summer, "light": array of "low"|"medium"|"bright"|"sun", "care":"easy"|"moderate"|"fussy", "pet": true if non-toxic to cats and dogs, "hum":"e.g. 40–60%", "temp":"e.g. 18–27 °C", "how":"how to water, 1-2 sentences", "tips":["2-3 short tips"]},
+ ${HEALTH_SHAPE}}
+If the photo shows no plant, return {"error":"no plant"}.`;
+  return await sample.json(prompt, {images:[blob]});
+}
+async function healthCheck(p, blob){
+  const sp = species(p);
+  const prompt = `You are the plant doctor inside a houseplant care app. This is a ${sp.name} (${sp.latin}) in a ${p.pot||6}-inch ${p.material||"plastic"} pot, watered every ${p.interval} days, last watered ${p.lastWatered}. Look at the photo for pests, disease, over- or under-watering, light or nutrient problems.
+Reply with JSON only: {${HEALTH_SHAPE}}`;
+  const r = await sample.json(prompt, {images:[blob]});
+  return r.health || r;
+}
+function cleanHealth(h){
+  if (!h || typeof h!=="object") return null;
+  return {date:today(), status:["healthy","watch","problem"].includes(h.status)?h.status:"watch", summary:String(h.summary||"").slice(0,300),
+    issues:(Array.isArray(h.issues)?h.issues:[]).slice(0,5).map(i=>({name:String(i.name||"").slice(0,80),signs:String(i.signs||"").slice(0,240),fix:String(i.fix||"").slice(0,300)})),
+    supplies:(Array.isArray(h.supplies)?h.supplies:[]).slice(0,8).map(s=>String(s).slice(0,60))};
+}
+function cleanCare(r){
+  const c = r.care || {};
+  return {id:null,name:String(r.name||"My plant").slice(0,60),latin:String(r.latin||"").slice(0,80),kind:KINDS.includes(r.kind)?r.kind:"leaf",
+    water:clamp(Math.round(Number(c.water)||7),1,45),light:(Array.isArray(c.light)?c.light:["medium"]).filter(l=>LIGHT[l]).slice(0,3),
+    care:CARE[c.care]?c.care:"moderate",pet:!!c.pet,hum:String(c.hum||"—").slice(0,30),temp:String(c.temp||"—").slice(0,30),
+    how:String(c.how||"").slice(0,300),tips:(Array.isArray(c.tips)?c.tips:[]).slice(0,4).map(t=>String(t).slice(0,160))};
+}
+function healthHTML(h){
+  if (!h) return "";
+  const pill = h.status==="healthy" ? `<span class="pill leaf">Looks healthy</span>` : h.status==="problem" ? `<span class="pill warn">Needs attention</span>` : `<span class="pill sun">Keep an eye on it</span>`;
+  return `<div class="health"><div class="actions" style="align-items:center">${pill}<span class="note">Checked ${fmt(h.date)}</span></div>
+    ${h.summary?`<p>${esc(h.summary)}</p>`:""}
+    ${h.issues.map(i=>`<div class="issue"><b>${esc(i.name)}</b>${i.signs?`<span class="muted">${esc(i.signs)}</span>`:""}<span>${esc(i.fix)}</span></div>`).join("")}
+    ${h.supplies.length?`<div><span class="eyebrow">Keep on hand</span><div class="supplies" style="margin-top:6px">${h.supplies.map(s=>`<span>${esc(s)}</span>`).join("")}</div></div>`:""}</div>`;
+}
+
+// ---------- Add-from-photo flow ----------
+const idState = {phase:"idle", photo:null, result:null, error:null, ctl:null};
+function renderAddAvailability(){
+  const el = $("#idNote");
+  if (!sample) el.innerHTML = `Photo ID needs Claude, and it isn't available in this view. <button class="btn ghost small" data-goto="find">Pick from the catalog</button>`;
+  else el.innerHTML = `Know what it is already? <button class="btn ghost small" data-goto="find">Pick from the catalog</button>`;
+}
+async function onIdFile(file){
+  if (!file) return;
+  if (!sample){ toast("Photo ID isn't available here. Pick from the catalog instead."); return; }
+  idState.photo = await thumb(file, 260); idState.phase = "thinking"; idState.result = null; idState.error = null; renderAdd();
+  try {
+    const r = await identify(await forClaude(file));
+    if (!r || r.error){ idState.phase="error"; idState.error = "That photo doesn't show a plant Claude can recognise. Try again with the whole plant in frame."; }
+    else { idState.phase="done"; idState.result = r; }
+  } catch(e){ idState.phase="error"; idState.error = sampleError(e); }
+  renderAdd();
+}
+function renderAdd(){
+  const el = $("#idResult");
+  if (idState.phase==="idle"){ el.innerHTML = ""; return; }
+  if (idState.phase==="thinking"){ el.innerHTML = `<div class="panel idres"><img class="photo" src="${idState.photo}" alt="Your photo"><div class="thinking"><span class="dots"><span></span><span></span><span></span></span>Claude is looking at your plant… this can take up to a minute.</div></div>`; return; }
+  if (idState.phase==="error"){ el.innerHTML = `<div class="panel idres"><img class="photo" src="${idState.photo}" alt="Your photo"><div style="display:grid;gap:10px"><p>${esc(idState.error)}</p><div class="actions"><label class="btn primary" for="idFile">Try another photo</label><button class="btn" data-goto="find">Pick from the catalog</button></div></div></div>`; return; }
+  const r = idState.result, match = BY_ID[r.matchId];
+  const sp = match || cleanCare(r);
+  const pot = clamp(Number(r.potInches)||10,4,16), potSnap = POT_SIZES.reduce((a,b)=>Math.abs(b-pot)<Math.abs(a-pot)?b:a);
+  const draft = {speciesId: match?match.id:null, custom: match?null:sp, kind: sp.kind, hue: clamp(Number(r.leafHue)||110,40,180), vari: ["white","yellow","pink"].includes(r.variegation)?r.variegation:null,
+    size: SIZE[r.plantSize]?r.plantSize:"medium", pot: potSnap, material:"plastic", potColor:"terracotta", nickname: sp.name, location:"", photo: idState.photo, health: cleanHealth(r.health)};
+  idState.draft = draft;
+  el.innerHTML = `<div class="panel" style="gap:16px">
+    <div class="idres"><div style="display:grid;gap:8px;justify-items:center"><div class="art" style="width:150px;aspect-ratio:120/140" id="draftArt">${palSVG({key:draft.speciesId||draft.nickname,kind:draft.kind,hue:draft.hue,vari:draft.vari,potColor:draft.potColor,size:draft.size,mood:"happy"})}</div><img class="photo" style="width:72px" src="${idState.photo}" alt="Your photo"></div>
+      <div style="display:grid;gap:10px;min-width:0">
+        <div><span class="eyebrow">${r.confidence==="high"?"Identified":"Best guess"} · ${esc(r.confidence||"")} confidence${match?" · in catalog":" · care plan from Claude"}</span><h2 style="font-size:24px">${esc(sp.name)}</h2><div class="latin">${esc(sp.latin)}</div></div>
+        <p class="note">Wrong plant? <button class="btn ghost small" data-goto="find">Pick it from the catalog</button></p>
+        ${healthHTML(draft.health)}
+      </div></div>
+    ${formHTML(sp, draft, "Add to my garden")}
+  </div>`;
+  bindForm(el, sp, draft, vals => {
+    const t = today();
+    act("add", () => store.add({...draft, ...vals, history:[vals.lastWatered], addedAt:t, snoozedTo:null, streak:0}), `${vals.nickname} joined your garden!`)
+      .then(ok => { if (ok){ idState.phase="idle"; renderAdd(); state.tab="garden"; render(); } });
+  });
+}
+
+// ---------- Shared add/edit form ----------
+function formHTML(sp, d, submitLabel){
+  const t = today();
+  return `<form class="add" id="plantForm">
+    <div class="two">
+      <div class="field"><label for="f-nick">Name</label><input id="f-nick" required maxlength="40" value="${esc(d.nickname)}"></div>
+      <div class="field"><label for="f-loc">Where it lives</label><input id="f-loc" maxlength="40" placeholder="e.g. Living room window" value="${esc(d.location||"")}"></div>
+      <div class="field"><label for="f-pot">Pot diameter</label><select id="f-pot">${POT_SIZES.map(n=>`<option value="${n}" ${Number(d.pot)===n?"selected":""}>${n}″ (${Math.round(n*2.54)} cm)</option>`).join("")}</select></div>
+      <div class="field"><label for="f-mat">Pot type</label><select id="f-mat">${Object.entries(MATERIAL).map(([k,m])=>`<option value="${k}" ${d.material===k?"selected":""}>${m.label}</option>`).join("")}</select></div>
+      <div class="field"><label for="f-size">Plant size</label><select id="f-size">${Object.entries(SIZE).map(([k,m])=>`<option value="${k}" ${(d.size||"medium")===k?"selected":""}>${m.label}</option>`).join("")}</select></div>
+      <div class="field"><label for="f-last">Last watered</label><input id="f-last" type="date" max="${t}" required value="${d.lastWatered||t}"></div>
+    </div>
+    <div class="field"><span class="lbl">Pot colour</span><div class="swatches" role="radiogroup" aria-label="Pot colour">${Object.entries(POT_COLORS).map(([k,c])=>`<label title="${k}"><input type="radio" name="potColor" value="${k}" ${(d.potColor||"terracotta")===k?"checked":""}><span style="background:${c}"></span></label>`).join("")}</div></div>
+    <div class="field"><label for="f-int">Water every (days)</label><input id="f-int" type="number" min="1" max="60" required value="${d.interval||recommended(sp,d.pot,d.material,d.size)}"><span class="hint" id="f-rec"></span></div>
+    <div class="actions"><button class="btn primary" type="submit">${submitLabel}</button></div>
+  </form>`;
+}
+function bindForm(root, sp, d, onSubmit){
+  const q = s => root.querySelector(s);
+  let touched = !!d.interval;
+  const rec = () => { const r = recommended(sp, q("#f-pot").value, q("#f-mat").value, q("#f-size").value);
+    q("#f-rec").textContent = `Recommended: ${r} days in summer, ${Math.round(r*1.5)} in winter. Each watering: ${waterAmount(q("#f-pot").value)}.`; return r; };
+  const redraw = () => { const art = root.querySelector("#draftArt"); if (art) art.innerHTML = palSVG({key:d.speciesId||d.nickname,kind:d.kind||sp.kind,hue:d.hue,vari:d.vari ?? VARI[d.speciesId],potColor:root.querySelector('input[name=potColor]:checked')?.value,size:q("#f-size").value,mood:"happy"}); };
+  q("#f-int").addEventListener("input", () => touched = true);
+  for (const s of ["#f-pot","#f-mat","#f-size"]) q(s).addEventListener("change", () => { const r = rec(); if (!touched) q("#f-int").value = r; redraw(); });
+  root.querySelectorAll("input[name=potColor]").forEach(i => i.addEventListener("change", redraw));
+  rec();
+  q("#plantForm").addEventListener("submit", e => {
+    e.preventDefault();
+    onSubmit({ nickname: q("#f-nick").value.trim() || sp.name, location: q("#f-loc").value.trim(),
+      pot: Number(q("#f-pot").value), material: q("#f-mat").value, size: q("#f-size").value,
+      potColor: root.querySelector("input[name=potColor]:checked")?.value || "terracotta",
+      interval: clamp(parseInt(q("#f-int").value,10) || sp.water, 1, 60), lastWatered: q("#f-last").value || today() });
+  });
+}
+
+// ---------- Actions ----------
+let proofTarget = null, healthTarget = null;
+async function water(id, photo){
+  const p = state.plants.find(x=>x.id===id); if (!p) return;
+  const t = today(), st = status(p,state.settings);
+  const onTime = st.d >= -1;
+  const streak = onTime ? (p.streak||0) + (p.lastWatered===t?0:1) : 1;
+  const history = [t, ...(p.history||[]).filter(d=>d!==t)].slice(0,12);
+  const patch = {lastWatered:t, history, snoozedTo:null, streak, best: Math.max(p.best||0, streak)};
+  if (photo) patch.proof = {date:t, photo};
+  const ok = await act("w"+id, () => store.update(id, patch));
+  if (ok){
+    if (dlg.open) dlg.close();
+    state.revive[id] = Date.now() + 3400; render();
+    setTimeout(() => { delete state.revive[id]; render(); }, 3500);
+    toast(st.mood==="wilted" ? `${p.nickname} is perking back up!` : streak>=3 ? `${p.nickname} is happy! ${streak} on-time waterings in a row.` : `${p.nickname} is happy and refreshed!`);
+  }
+}
+function snooze(id){
+  const p = state.plants.find(x=>x.id===id); if (!p) return;
+  const wait = (Number(p.pot)||6) >= 10 ? 2 : 1, to = addDays(today(), wait);
+  act("s"+id, () => store.update(id,{snoozedTo:to, checks:[today(),...(p.checks||[])].slice(0,12)}), `Still moist. Check ${p.nickname} again ${wait===1?"tomorrow":fmt(to,{weekday:"long"})}.`);
+}
+async function runHealth(id, file){
+  const p = state.plants.find(x=>x.id===id); if (!p || !file) return;
+  if (!sample){ toast("Health checks need Claude, which isn't available here."); return; }
+  state.sheet = {id, view:"health-thinking"}; renderSheet();
+  try {
+    const h = cleanHealth(await healthCheck(p, await forClaude(file)));
+    if (!h) throw {};
+    await act("h"+id, () => store.update(id,{health:h}));
+    state.sheet = {id, view:"main"}; renderSheet();
+  } catch(e){ state.sheet = {id, view:"main", error: sampleError(e)}; renderSheet(); }
+}
+function addExamples(){
+  const t = today();
+  const ex = [
+    {speciesId:"philo-congo",nickname:"Big Phil",location:"Living room",pot:12,size:"large",potColor:"terracotta",last:-12},
+    {speciesId:"philo",nickname:"Heartleaf",location:"Bookshelf",pot:10,size:"medium",potColor:"cream",last:-10},
+    {speciesId:"dr-corn",nickname:"Corny",location:"Hallway",pot:12,size:"large",potColor:"charcoal",last:-6},
+    {speciesId:"marginata",nickname:"Dragon",location:"Bedroom",pot:10,size:"medium",potColor:"sky",last:-3},
+    {speciesId:"dr-janet",nickname:"Janet",location:"Office",pot:12,size:"large",potColor:"blush",last:-15}
+  ];
+  act("examples", async () => {
+    for (const e of ex){ const sp = BY_ID[e.speciesId], lw = addDays(t,e.last);
+      await store.add({speciesId:e.speciesId,nickname:e.nickname,location:e.location,pot:e.pot,material:"plastic",size:e.size,potColor:e.potColor,interval:recommended(sp,e.pot,"plastic",e.size),lastWatered:lw,history:[lw],addedAt:t,snoozedTo:null,streak:0}); }
+  }, "Added 5 example plants. Remove them any time.");
+}
+function icsExport(){
+  const s = state.settings, stamp = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Watering Can//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:Watering Can"];
+  for (const p of state.plants){
+    const due = nextDue(p,s).replace(/-/g,""), iv = effInterval(p,s);
+    const text = (x) => String(x).replace(/[\\;,]/g,m=>"\\"+m).replace(/\n/g,"\\n");
+    lines.push("BEGIN:VEVENT",`UID:${p.id}@watering-can`,`DTSTAMP:${stamp}`,`DTSTART:${due}T090000`,"DURATION:PT10M",`RRULE:FREQ=DAILY;INTERVAL=${iv}`,
+      `SUMMARY:${text("Water "+p.nickname)}`,`DESCRIPTION:${text(`Check the soil two-thirds down first. If dry, give ${p.pot?waterAmount(p.pot):"water"} until it drains. Then tap Watered in Watering Can.`)}`,
+      "BEGIN:VALARM","ACTION:DISPLAY",`DESCRIPTION:${text("Water "+p.nickname)}`,"TRIGGER:PT0M","END:VALARM","END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+async function saveCalendar(){
+  if (!downloads){ toast("Downloads aren't available in this view."); return; }
+  try { const r = await downloads.save({filename:"watering-can-reminders.ics", data:new Blob([icsExport()],{type:"text/calendar"})});
+    if (r?.status==="saved") toast("Calendar file saved. Open it to add the reminders."); }
+  catch(e){ if (e?.code!=="cancelled" && e?.code!=="declined") toast("The calendar file wasn't saved."); }
+}
+
+// ---------- Rendering ----------
+function renderHeader(){
+  const n = state.plants.length, sts = state.plants.map(p=>status(p,state.settings));
+  const wil = sts.filter(s=>s.mood==="wilted").length, thi = sts.filter(s=>s.mood==="thirsty").length, hap = n-wil-thi;
+  const h = $("#headline");
+  if (!state.ready) h.textContent = "Waking up your garden…";
+  else if (!n) h.innerHTML = "Your plants, as little pals who tell you when they're <b class=\"water\">thirsty</b>.";
+  else if (!wil && !thi) h.innerHTML = `All ${n} plant${n>1?"s are":" is"} <b>happy</b>. Nothing to water today.`;
+  else h.innerHTML = `${hap?`<b>${hap} happy</b>, `:""}${thi?`<b class="water">${thi} thirsty</b>`:""}${thi&&wil?", ":""}${wil?`<b class="warn">${wil} wilting</b>`:""}.`;
+  const best = Math.max(0,...state.plants.map(p=>p.streak||0));
+  $("#tally").innerHTML = (n ? `${wil?`<span class="pill warn">${wil} wilting</span>`:""}${thi?`<span class="pill water">${thi} thirsty</span>`:""}<span class="pill leaf">${hap} happy</span>${best>=2?`<span class="pill sun">Best streak ${best}</span>`:""}` : "") + `<span class="pill">${fmt(today(),{weekday:"short",month:"short",day:"numeric"})}</span>`;
+  $("#gardenCount").textContent = n || "";
+}
+function cardSig(p, st, rev){ return JSON.stringify([p.nickname,p.kind,p.hue,p.vari,p.potColor,p.size,p.material,p.speciesId,st.mood,st.label,p.streak,!!p.proof,p.health?.status,rev,state.busy.has("w"+p.id)]); }
+function renderGarden(){
+  const v = $("#view-garden");
+  if (!state.ready){ v.innerHTML = `<div class="empty"><h3>Waking up your garden…</h3></div>`; return; }
+  if (!state.plants.length){
+    v.innerHTML = `<div class="empty" style="justify-items:center;text-align:center">
+      <div style="width:130px">${palSVG({key:"demo",kind:"vine",potColor:"terracotta",mood:"happy"})}</div>
+      <h3>Your garden is empty</h3><p style="max-width:46ch">Add a plant and it shows up here as a little pal. When it's thirsty it starts to droop, and if you wait too long it wilts. Water it, tap Watered and watch it perk back up.</p>
+      <div class="actions" style="justify-content:center"><button class="btn primary" data-goto="add">Add a plant from a photo</button><button class="btn" data-goto="find">Pick from the catalog</button><button class="btn ghost" data-act="examples" ${state.busy.has("examples")?"disabled":""}>Try 5 example plants</button></div></div>
+      ${settingsHTML()}`;
+    return;
+  }
+  // Keep the shelf and patch only cards that changed, so the revive animation isn't restarted by unrelated updates.
+  if (!v.querySelector("#shelf")) v.innerHTML = `<div><div id="shelf" class="garden"></div></div><div id="gardenRest" style="display:grid;gap:28px"></div>`;
+  const shelf = v.querySelector("#shelf");
+  const order = state.plants.map(p=>({p,st:status(p,state.settings)})).sort((a,b)=>a.st.d-b.st.d || a.p.nickname.localeCompare(b.p.nickname));
+  const keep = new Set();
+  order.forEach(({p,st},i) => {
+    keep.add(p.id);
+    const rev = !!state.revive[p.id] && state.revive[p.id] > Date.now();
+    const mood = rev ? "happy" : st.mood, sig = cardSig(p, st, rev);
+    let el = shelf.querySelector(`[data-card="${p.id}"]`);
+    if (!el){ el = document.createElement("div"); el.dataset.card = p.id; el.className = "pal-card"; }
+    if (shelf.children[i] !== el) shelf.insertBefore(el, shelf.children[i] || null);
+    if (el.dataset.sig === sig) return;
+    el.dataset.sig = sig;
+    el.className = `pal-card s-${mood}${rev?" reviving":""}`;
+    const busy = state.busy.has("w"+p.id);
+    el.innerHTML = `<button class="art" data-sheet="${p.id}" style="background:none;border:0;padding:0" aria-label="Open ${esc(p.nickname)}">${palFor(p, mood)}</button>
+      <div class="nm">${esc(p.nickname)}</div>
+      <div class="st ${rev?"happy":st.mood}">${rev?"Refreshed!":esc(st.label)}</div>
+      <div class="badge-row">${(p.streak||0)>=2?`<span class="mini ok">${p.streak} in a row</span>`:""}${p.proof?.date===today()?`<span class="mini ok">photo proof</span>`:""}${p.health?.status==="problem"?`<span class="mini bad">needs attention</span>`:""}</div>
+      ${st.mood!=="happy"&&!rev?`<div class="quick"><button class="btn primary small" data-act="water-start" data-id="${p.id}" ${busy?"disabled":""}>${busy?"Saving…":"Water"}</button></div>`:""}`;
+  });
+  [...shelf.children].forEach(c => { if (!keep.has(c.dataset.card)) c.remove(); });
+
+  const t = today(), days = Array.from({length:7},(_,i)=>addDays(t,i));
+  const week = days.map((d,i)=>{ const list = order.filter(it => i===0 ? it.st.d<=0 : it.st.due===d);
+    return `<div class="day ${i===0?"today":""}"><div class="d">${i===0?"Today":fmt(d,{weekday:"short"})}<b>${parse(d).getDate()}</b></div>${list.map(it=>`<div class="chip" title="${esc(it.p.nickname)}">${esc(it.p.nickname)}</div>`).join("")}</div>`; }).join("");
+  const restHTML = `
+    <div><div class="section-head"><h2>This week</h2><span class="eyebrow">${isWinter(state.settings)?"Winter pace · intervals ×1.5":"Growing-season pace"}</span></div><div class="week-scroll"><div class="week">${week}</div></div></div>
+    <div class="panel"><h3>Reminders</h3>
+      <p class="muted" style="font-size:14px">This page can't send notifications on its own. Save a calendar file to get a repeating reminder for each plant at 9 am on the days it's due. Save it again whenever you add plants or change a schedule.</p>
+      <div class="actions"><button class="btn" data-act="ics" ${downloads?"":"disabled"}>Add reminders to my calendar</button>${downloads?"":`<span class="note">Saving files isn't available in this view.</span>`}</div></div>
+    ${settingsHTML()}`;
+  const rest = v.querySelector("#gardenRest");
+  if (rest.dataset.html !== restHTML){ rest.innerHTML = restHTML; rest.dataset.html = restHTML; }
+}
+function settingsHTML(){
+  const s = state.settings;
+  return `<div class="panel settings">
+    <label for="winter">Winter slow-down <select id="winter"><option value="auto" ${!s.winter||s.winter==="auto"?"selected":""}>Automatic</option><option value="on" ${s.winter==="on"?"selected":""}>On</option><option value="off" ${s.winter==="off"?"selected":""}>Off</option></select></label>
+    <label for="hemi">Hemisphere <select id="hemi"><option value="north" ${s.hemisphere!=="south"?"selected":""}>Northern</option><option value="south" ${s.hemisphere==="south"?"selected":""}>Southern</option></select></label>
+    <span>${state.mode==="db"?"Your garden is saved to your account and private to you.":"Saved in this browser only."}</span></div>`;
+}
+function renderFilters(){
+  const f = state.f, chip = (g,v,l) => `<button class="fchip" data-f="${g}" data-v="${v}" aria-pressed="${f[g]===v}">${l}</button>`;
+  $("#filters").innerHTML = `<span class="eyebrow">Light</span>${Object.entries(LIGHT).map(([k,l])=>chip("light",k,l)).join("")}
+    <span class="eyebrow" style="margin-left:8px">Care</span>${Object.entries(CARE).map(([k,l])=>chip("care",k,l)).join("")}
+    <button class="fchip" data-f="pet" aria-pressed="${f.pet}" style="margin-left:8px">Safe for cats &amp; dogs</button>`;
+}
+const iconCache = {};
+function renderFind(){
+  renderFilters();
+  const q = state.q.trim().toLowerCase(), f = state.f, owned = new Set(state.plants.map(p=>p.speciesId));
+  const res = C.filter(p => (!q || (p.name+" "+p.latin+" "+(p.aka||"")+" "+p.kind).toLowerCase().includes(q)) && (!f.light || p.light.includes(f.light)) && (!f.care || p.care===f.care) && (!f.pet || p.pet));
+  $("#resultCount").textContent = `${res.length} of ${C.length} plants`;
+  $("#results").innerHTML = res.length ? res.map(p=>`<button class="result" data-open="${p.id}"><span class="ic">${iconCache[p.id] ||= catalogIcon(p)}</span>
+      <div style="min-width:0"><div class="name">${esc(p.name)}</div><div class="latin">${esc(p.latin)}</div>
+      <div class="tags"><span class="tag">${LIGHT[p.light[p.light.length-1]]}</span><span class="tag">~${p.water}d in 6″</span><span class="tag ${p.pet?"safe":"toxic"}">${p.pet?"pet-safe":"toxic to pets"}</span>${owned.has(p.id)?'<span class="tag owned">in your garden</span>':""}</div></div></button>`).join("")
+    : `<div class="empty"><h3>No plants match</h3><p>Try a different name, clear a filter, or add it from a photo.</p></div>`;
+}
+function render(){
+  renderHeader();
+  for (const t of ["garden","add","find"]){ $("#view-"+t).hidden = state.tab!==t; $("#tab-"+t).setAttribute("aria-selected", state.tab===t); }
+  if (state.tab==="garden") renderGarden(); else if (state.tab==="find") renderFind();
+  if (dlg.open && state.sheet?.id && !state.sheet.view.startsWith("edit")) renderSheet();
+}
+
+// ---------- Sheets ----------
+const dlg = $("#dlg");
+const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function careHTML(sp, p){
+  return `<div class="care">
+    <div><span class="eyebrow">Light</span><div class="v">${sp.light.map(l=>LIGHT[l]).join(" to ")||"—"}</div><div class="n">${sp.light.map(l=>LIGHT_FC[l]).join(" / ")}</div></div>
+    <div><span class="eyebrow">Water</span><div class="v">${p ? `Every ${effInterval(p,state.settings)} days` : `About every ${sp.water} days in a 6″ pot`}</div><div class="n">${p&&p.pot ? waterAmount(p.pot)+" each time" : `${recommended(sp,10,"plastic")} d in 10″ · ${recommended(sp,12,"plastic")} d in 12″`}</div></div>
+    <div><span class="eyebrow">Humidity</span><div class="v">${esc(sp.hum)}</div><div class="n">relative humidity</div></div>
+    <div><span class="eyebrow">Temperature</span><div class="v">${esc(sp.temp)}</div><div class="n">${sp.pet?"non-toxic to cats & dogs":"toxic to cats & dogs"}</div></div></div>
+    ${sp.how?`<div><span class="eyebrow">How to water</span><p style="margin-top:4px">${esc(sp.how)}</p></div>`:""}
+    ${sp.tips?.length?`<div><span class="eyebrow">Tips</span><ul class="tips" style="margin-top:4px">${sp.tips.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+    <div class="care"><div style="grid-column:1 / -1"><span class="eyebrow">Checking big pots (10″ and up)</span><p style="margin-top:4px;font-size:14px">The top 5 cm dries long before the root zone, which is how big pots cause root rot. Push a wooden chopstick or moisture meter two-thirds of the way down. Water only if it comes out dry. Empty the saucer after 15 minutes.</p></div></div>`;
+}
+function openSpecies(id){
+  const sp = BY_ID[id]; if (!sp) return;
+  state.sheet = null;
+  const d = {speciesId:sp.id, kind:sp.kind, nickname:sp.name, pot:10, material:"plastic", size:"medium", potColor:"terracotta"};
+  dlg.innerHTML = `<div class="dlg">
+    <div class="dlg-head"><div class="dlg-hero" style="flex:1"><div class="art" id="draftArt">${palSVG({key:sp.id,kind:sp.kind,vari:VARI[sp.id],potColor:"terracotta",mood:"happy"})}</div>
+      <div><span class="eyebrow">${CARE[sp.care]} care</span><h2 id="dlgTitle">${esc(sp.name)}</h2><div class="latin">${esc(sp.latin)}</div></div></div>
+      <button class="close" data-close aria-label="Close">${X}</button></div>
+    ${careHTML(sp)}
+    <div style="border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px"><h3 style="font-size:17px">Add to my garden</h3>${formHTML(sp,d,"Add to my garden")}</div></div>`;
+  bindForm(dlg, sp, d, vals => { dlg.close();
+    act("add", () => store.add({speciesId:sp.id, kind:sp.kind, ...vals, history:[vals.lastWatered], addedAt:today(), snoozedTo:null, streak:0}), `${vals.nickname} joined your garden!`)
+      .then(ok => { if (ok){ state.tab="garden"; render(); } }); });
+  if (!dlg.open) dlg.showModal();
+}
+function openPlant(id, view="main"){ state.sheet = {id, view}; renderSheet(); if (!dlg.open) dlg.showModal(); }
+function renderSheet(){
+  const sh = state.sheet; if (!sh) return;
+  const p = state.plants.find(x=>x.id===sh.id); if (!p){ dlg.close(); return; }
+  const sp = species(p), st = status(p,state.settings);
+  const head = `<div class="dlg-head"><div class="dlg-hero" style="flex:1"><div class="art ${"s-"+st.mood}" style="width:auto">${palFor(p, st.mood)}</div>
+      <div style="display:grid;gap:4px"><span class="eyebrow">${esc(sp.name)}${p.location?" · "+esc(p.location):""}</span><h2 id="dlgTitle">${esc(p.nickname)}</h2>
+      <div class="st ${st.mood} mono" style="font-size:13px">${esc(st.label)}</div>
+      <div class="note">${esc(potLabel(p))}${p.size?` · ${SIZE[p.size].label.toLowerCase()} plant`:""} · every ${effInterval(p,state.settings)} days</div></div></div>
+      <button class="close" data-close aria-label="Close">${X}</button></div>`;
+  let body = "";
+  if (sh.view==="proof"){
+    body = `<div class="panel" style="gap:12px"><h3>Did you water ${esc(p.nickname)}?</h3>
+      <p class="muted" style="font-size:14px">Take a quick photo of the soaked soil or the water draining out to log it as proof.${p.pot?` Aim for ${waterAmount(p.pot)}.`:""}</p>
+      <div class="actions"><label class="btn primary" for="proofFile">Take a photo</label><button class="btn" data-act="water-now" data-id="${p.id}">Log without a photo</button><button class="btn ghost" data-act="sheet-main" data-id="${p.id}">Not yet</button></div></div>`;
+  } else if (sh.view==="health-thinking"){
+    body = `<div class="panel"><div class="thinking"><span class="dots"><span></span><span></span><span></span></span>Claude is checking ${esc(p.nickname)}'s health…</div></div>`;
+  } else if (sh.view==="edit"){
+    body = `<div style="display:grid;gap:12px"><h3 style="font-size:17px">Edit ${esc(p.nickname)}</h3>${formHTML(sp,{...p,kind:p.kind||sp.kind},"Save changes")}<button class="btn ghost" data-act="sheet-main" data-id="${p.id}" style="justify-self:start">Cancel</button></div>`;
+  } else {
+    const r = rhythm(p);
+    body = `${sh.error?`<p class="pill warn" style="white-space:normal">${esc(sh.error)}</p>`:""}
+      <div class="actions">
+        <button class="btn primary" data-act="water-start" data-id="${p.id}">Watered</button>
+        ${st.d<=1?`<button class="btn" data-act="snooze" data-id="${p.id}" title="Soil is still damp deep down">Still moist</button>`:""}
+        <label class="btn" for="healthFile" ${sample?"":"hidden"}>Health check</label>
+        <button class="btn ghost" data-act="edit" data-id="${p.id}">Edit</button>
+      </div>
+      ${r && Math.abs(r-Number(p.interval))>=2 ? `<p class="note">You actually water every ~${r} days. <button class="btn ghost small" data-act="rhythm" data-id="${p.id}" data-v="${r}">Use ${r} days</button></p>`:""}
+      <div class="two">
+        <div class="panel" style="gap:6px"><span class="eyebrow">Streak</span><div style="font:800 26px var(--f-display)">${p.streak||0}</div><span class="note">on-time waterings in a row${p.best?` · best ${p.best}`:""}</span></div>
+        <div class="panel" style="gap:6px"><span class="eyebrow">Last watered</span><div style="font:700 18px var(--f-display)">${p.lastWatered?fmt(p.lastWatered,{weekday:"short",month:"short",day:"numeric"}):"—"}</div>
+          ${p.proof?`<div class="actions" style="align-items:center"><img class="proof" style="width:56px;height:56px" src="${p.proof.photo}" alt="Watering proof photo"><span class="note">Photo proof, ${fmt(p.proof.date)}</span></div>`:`<span class="note">No photo proof yet</span>`}</div>
+      </div>
+      ${p.health?`<div><div class="section-head" style="margin-bottom:6px"><h3 style="font-size:17px">Health</h3></div>${healthHTML(p.health)}</div>`:(sample?`<p class="note">Tap Health check and take a photo. Claude looks for pests, disease and watering problems, and tells you what to keep on hand.</p>`:"")}
+      ${p.photo?`<div><span class="eyebrow">Your photo</span><div style="margin-top:6px"><img class="proof" src="${p.photo}" alt="Photo of ${esc(p.nickname)}"></div></div>`:""}
+      ${p.history?.length?`<div><span class="eyebrow">Recent waterings</span><div class="history" style="margin-top:6px">${p.history.map(d=>`<span class="tag">${fmt(d)}</span>`).join("")}</div></div>`:""}
+      <details><summary style="cursor:pointer;font-weight:600">Care sheet</summary><div style="display:grid;gap:14px;margin-top:12px">${careHTML(sp,p)}</div></details>
+      <div class="actions" style="border-top:1px solid var(--line);padding-top:14px">${state.confirm===p.id?`<button class="btn danger" data-act="remove-yes" data-id="${p.id}">Remove ${esc(p.nickname)} for good</button><button class="btn ghost" data-act="remove-no">Keep</button>`:`<button class="btn ghost danger" data-act="remove" data-id="${p.id}">Remove from garden</button>`}</div>`;
+  }
+  dlg.innerHTML = `<div class="dlg">${head}${body}</div>`;
+  if (sh.view==="edit") bindForm(dlg, sp, {...p}, vals => {
+    const history = p.lastWatered===vals.lastWatered ? p.history : [vals.lastWatered,...(p.history||[]).filter(d=>d!==vals.lastWatered)].sort().reverse().slice(0,12);
+    act("e"+p.id, () => store.update(p.id,{...vals, history, snoozedTo:null}), `Saved ${vals.nickname}`).then(()=>{ state.sheet={id:p.id,view:"main"}; renderSheet(); });
+  });
+}
+dlg.addEventListener("click", e => { if (e.target===dlg || e.target.closest("[data-close]")) dlg.close(); });
+dlg.addEventListener("close", () => { state.sheet = null; state.confirm = null; });
+
+// ---------- Events ----------
+document.addEventListener("click", e => {
+  const tab = e.target.closest("[data-tab]"); if (tab){ state.tab = tab.dataset.tab; try{localStorage.setItem("wc-tab",state.tab)}catch{} render(); return; }
+  const go = e.target.closest("[data-goto]"); if (go){ if (dlg.open) dlg.close(); state.tab = go.dataset.goto; render(); if (state.tab==="find") $("#q").focus(); return; }
+  const op = e.target.closest("[data-open]"); if (op){ openSpecies(op.dataset.open); return; }
+  const sh = e.target.closest("[data-sheet]"); if (sh){ openPlant(sh.dataset.sheet); return; }
+  const fc = e.target.closest("[data-f]");
+  if (fc){ const g = fc.dataset.f; if (g==="pet") state.f.pet = !state.f.pet; else state.f[g] = state.f[g]===fc.dataset.v ? null : fc.dataset.v; renderFind(); return; }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const id = a.dataset.id;
+  switch (a.dataset.act){
+    case "water-start": proofTarget = id; openPlant(id,"proof"); break;
+    case "water-now": water(id); break;
+    case "snooze": snooze(id); break;
+    case "sheet-main": openPlant(id,"main"); break;
+    case "edit": openPlant(id,"edit"); break;
+    case "examples": addExamples(); break;
+    case "ics": saveCalendar(); break;
+    case "rhythm": { const v = Number(a.dataset.v); act("i"+id, () => store.update(id,{interval:v}), `Now every ${v} days`); break; }
+    case "remove": state.confirm = id; renderSheet(); break;
+    case "remove-no": state.confirm = null; renderSheet(); break;
+    case "remove-yes": { const p = state.plants.find(x=>x.id===id); state.confirm=null; dlg.close(); act("r"+id, () => store.remove(id), `Removed ${p?.nickname||"plant"}`); break; }
+  }
+});
+document.addEventListener("change", async e => {
+  if (e.target.id==="winter" || e.target.id==="hemi"){
+    act("settings", () => store.setSettings({...state.settings, winter:$("#winter").value, hemisphere:$("#hemi").value}));
+  } else if (e.target.id==="idFile"){ const f = e.target.files?.[0]; e.target.value = ""; onIdFile(f); }
+  else if (e.target.id==="proofFile"){ const f = e.target.files?.[0]; e.target.value = ""; if (f && proofTarget){ const ph = await thumb(f, 220); water(proofTarget, ph); } }
+  else if (e.target.id==="healthFile"){ const f = e.target.files?.[0]; e.target.value = ""; if (f && state.sheet?.id) runHealth(state.sheet.id, f); }
+});
+// drag and drop a photo onto the add box
+const drop = $("#drop");
+["dragover","dragenter"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(t => drop.addEventListener(t, () => drop.classList.remove("over")));
+drop.addEventListener("drop", e => { e.preventDefault(); onIdFile(e.dataTransfer.files?.[0]); });
+$("#q").addEventListener("input", e => { state.q = e.target.value; renderFind(); });
+
+let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.hidden=false; clearTimeout(tt); tt=setTimeout(()=>el.hidden=true,3000); }
+
+try { const t = localStorage.getItem("wc-tab"); if (["garden","add","find"].includes(t)) state.tab = t; } catch {}
+render(); renderAddAvailability();
+init(); initClaude();
+})();
+</script>
+</body>
+</html>
